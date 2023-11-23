@@ -13,7 +13,7 @@ def runcmd(cmd, verbose = False, *args, **kwargs):
         print(std_out.strip(), std_err)
     pass
 
-def dodnloadScratchRemoverModel():
+def downloadScratchRemoverModel():
     runcmd("wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt", verbose=True)
 
 

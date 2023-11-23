@@ -1,18 +1,9 @@
-from fastapi import FastAPI, Body, HTTPException
-from fastapi.responses import RedirectResponse, FileResponse
-from fastapi import File, UploadFile, Form
-from typing import List, Optional, Tuple
+from fastapi import FastAPI
 import gradio as gr
-from modules.api import api
-import os
-import shutil
 import time
 from datetime import datetime, timezone
-import base64
-import cv2
 
-from scratchDetection.arifScretchRemover import generate_scratch_mask
-from scratchDetection.arif_install import dodnloadScratchRemoverModel
+from arif_install import downloadScratchRemoverModel
 
 
 def scratch_remove_api(_: gr.Blocks, app: FastAPI):
@@ -23,7 +14,7 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         utc_time = datetime.now(timezone.utc)
         start_time = time.time()
 
-        dodnloadScratchRemoverModel()
+        downloadScratchRemoverModel()
 
         end_time = time.time()
         server_process_time = end_time - start_time

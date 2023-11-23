@@ -1,7 +1,7 @@
 #best restoration model
 
 import gradio as gr
-from scratchDetection.pipeline_stable_diffusion_controlnet_inpaint import *
+from pipeline_stable_diffusion_controlnet_inpaint import *
 from scratch_detection import ScratchDetection
 
 from diffusers import ControlNetModel, DEISMultistepScheduler

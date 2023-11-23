@@ -1,7 +1,7 @@
 #best object removal model
 
 import gradio as gr
-from scratchDetection.pipeline_stable_diffusion_controlnet_inpaint import *
+from pipeline_stable_diffusion_controlnet_inpaint import *
 
 from diffusers import ControlNetModel, DEISMultistepScheduler
 from PIL import Image

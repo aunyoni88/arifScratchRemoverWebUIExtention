@@ -1,4 +1,4 @@
-from scratchDetection.pipeline_stable_diffusion_controlnet_inpaint import *
+from pipeline_stable_diffusion_controlnet_inpaint import *
 from scratch_detection import ScratchDetection
 
 from PIL import Image
