@@ -1,15 +1,9 @@
-import gradio as gr
-import numpy as np
-import torch
-from src.pipeline_stable_diffusion_controlnet_inpaint import *
+from scratchDetection.pipeline_stable_diffusion_controlnet_inpaint import *
 from scratch_detection import ScratchDetection
 
-from diffusers import StableDiffusionInpaintPipeline, ControlNetModel, DEISMultistepScheduler
-from diffusers.utils import load_image
 from PIL import Image
 import cv2
 import glob
-import time
 import os
 
 device = "cuda"
@@ -78,4 +72,4 @@ def generate_scratch_mask():
     # return mask_image_dilated
 
 
-generate_scratch_mask()
+# generate_scratch_mask()

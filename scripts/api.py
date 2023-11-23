@@ -46,7 +46,13 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
-            "server_process_time": server_process_time,
+            "server_process_time": server_process_time
+        }
+
+    @app.post('/arifTest')
+    async def arifTest():
+        return {
+            "server_process_time": " "
         }
 
 

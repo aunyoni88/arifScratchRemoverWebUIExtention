@@ -1,16 +1,12 @@
 #best restoration model
 
 import gradio as gr
-import numpy as np
-import torch
-from src.pipeline_stable_diffusion_controlnet_inpaint import *
+from scratchDetection.pipeline_stable_diffusion_controlnet_inpaint import *
 from scratch_detection import ScratchDetection
 
-from diffusers import StableDiffusionInpaintPipeline, ControlNetModel, DEISMultistepScheduler
-from diffusers.utils import load_image
+from diffusers import ControlNetModel, DEISMultistepScheduler
 from PIL import Image
 import cv2
-import time
 import os
 
 device = "cuda"
