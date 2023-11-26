@@ -1,23 +1,22 @@
 from fastapi import FastAPI, Body, HTTPException
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi import File, UploadFile, Form
-
 import gradio as gr
 import time
 from datetime import datetime, timezone
-
 from pipeline_stable_diffusion_controlnet_inpaint import *
 from scratch_detection import ScratchDetection
-
 from arif_install import downloadScratchRemoverModel
-# from arifScretchRemover import generate_scratch_mask
-
 from PIL import Image
 import cv2
 import glob
 import shutil
 import os
+from os.path import exists
+import subprocess
 import base64
+from io import BytesIO
+import  numpy
 
 device = "cuda"
 
@@ -43,14 +42,15 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
     async def generate_mask_image(
             source_image: UploadFile = File()
     ):
-
         start_time = time.time()
 
-        generate_scratch_mask(source_image)
+        downloadScratchRemoverModelModel()
+        image_base64_str = generate_scratch_mask(source_image)
 
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
+            "mask_image": image_base64_str,
             "server_process_time": server_process_time
         }
 
@@ -75,8 +75,12 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         input_path = curDir + "/extensions/arifScratchRemoverWebUIExtention/input_images"
         output_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks"
 
-        # Save the input image to a directory
+        # remove previous image from output directory
         remove_all_file_in_dir(folder=("%s/*" % input_path))
+        remove_all_file_in_dir(folder=(curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/mask/*"))
+        remove_all_file_in_dir(folder=(curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/*"))
+
+        # Save the input image to a directory
         source_file_location = input_path + "/" + fileName
         save_file(source_image, source_file_location)
 
@@ -100,12 +104,16 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         mask_image_np_dilated = cv2.dilate(mask_image_np, kernel, iterations=2)
         mask_image_dilated = Image.fromarray(mask_image_np_dilated)
 
-        # window_name = 'Output Image'
-        # cv2.imshow(window_name, mask_image_dilated)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        #return base64 image
+        _, encoded_img = cv2.imencode('.jpg', mask_image_np_dilated)
+        img_str = base64.b64encode(encoded_img).decode("utf-8")
+        return img_str
 
-        # return mask_image_dilated
+        # opencvImage = cv2.cvtColor(numpy.array(mask_image_dilated), cv2.COLOR_RGB2BGR)
+        # buffered = BytesIO()
+        # mask_image_dilated.save(buffered, format="JPEG")
+        # img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        # return img_str
 
     def save_file(file: UploadFile, path: str):
         with open(path, "wb+") as file_object:
@@ -127,6 +135,36 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         files = glob.glob(folder)
         for f in files:
             os.remove(f)
+
+    def downloadScratchRemoverModelModel():
+        curDir = os.getcwd()
+        model_name = "FT_Epoch_latest.pt"
+        model_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/"
+        model_path = model_dir + model_name
+
+        if exists(model_path):
+            print("model already downloaded")
+            return
+        else:
+            command_str = "wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt" + " -P " + model_dir
+            runcmd(command_str, verbose=True)
+            print("model downloaded done")
+    def runcmd(cmd, verbose=False, *args, **kwargs):
+
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=True
+        )
+        std_out, std_err = process.communicate()
+        if verbose:
+            print(std_out.strip(), std_err)
+        pass
+
+
+
 
 
 try:

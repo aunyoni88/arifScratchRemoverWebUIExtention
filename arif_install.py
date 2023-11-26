@@ -16,7 +16,7 @@ def runcmd(cmd, verbose = False, *args, **kwargs):
 
 def downloadScratchRemoverModel():
     curDir = os.getcwd()
-    command_str = curDir + "wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt" + " -P /extensions/arifScratchRemoverWebUIExtention/"
+    command_str = "wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt" + " -P " + curDir +"/extensions/arifScratchRemoverWebUIExtention/"
     runcmd(command_str, verbose=True)
 
 
