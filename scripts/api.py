@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timezone
 
 from arif_install import downloadScratchRemoverModel
+from arifScretchRemover import generate_scratch_mask
 
 
 def scratch_remove_api(_: gr.Blocks, app: FastAPI):
@@ -33,6 +34,7 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
 
         start_time = time.time()
 
+        generate_scratch_mask()
         
         end_time = time.time()
         server_process_time = end_time - start_time
