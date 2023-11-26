@@ -1,4 +1,5 @@
 import subprocess
+import os
 def runcmd(cmd, verbose = False, *args, **kwargs):
 
     process = subprocess.Popen(
@@ -14,11 +15,9 @@ def runcmd(cmd, verbose = False, *args, **kwargs):
     pass
 
 def downloadScratchRemoverModel():
-    runcmd("cd extensions", verbose=True)
-    runcmd("cd arifScratchRemoverWebUIExtention", verbose=True)
-    runcmd("wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt", verbose=True)
-    runcmd("cd ..", verbose=True)
-    runcmd("cd ..", verbose=True)
+    curDir = os.getcwd()
+    command_str = curDir + "wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt" + " -P /extensions/arifScratchRemoverWebUIExtention/"
+    runcmd(command_str, verbose=True)
 
 
 #runcmd("apt-get update && apt-get install libgl1", verbose = True)

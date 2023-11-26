@@ -63,6 +63,7 @@ def generate_scratch_mask():
     mask_image_dilated = Image.fromarray(mask_image_np_dilated)
 
 
+    return mask_image_dilated
 
     # window_name = 'Output Image'
     # cv2.imshow(window_name, mask_image_dilated)
@@ -73,3 +74,6 @@ def generate_scratch_mask():
 
 
 # generate_scratch_mask()
+
+filename = os.path.splitext("auny.png")[0]
+print(filename)
