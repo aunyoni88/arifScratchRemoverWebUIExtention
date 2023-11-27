@@ -6,6 +6,7 @@ import time
 from datetime import datetime, timezone
 from pipeline_stable_diffusion_controlnet_inpaint import *
 from scratch_detection import ScratchDetection
+from diffusers import ControlNetModel, DEISMultistepScheduler
 from arif_install import downloadScratchRemoverModel
 from PIL import Image
 import cv2
@@ -19,6 +20,20 @@ from io import BytesIO
 import  numpy
 
 device = "cuda"
+
+# load control net and stable diffusion v1-5
+controlnet = ControlNetModel.from_pretrained("thepowefuldeez/sd21-controlnet-canny", torch_dtype=torch.float16)
+
+pipe = StableDiffusionControlNetInpaintPipeline.from_pretrained(
+     "stabilityai/stable-diffusion-2-inpainting", controlnet=controlnet, torch_dtype=torch.float16
+ )
+
+pipe.scheduler = DEISMultistepScheduler.from_config(pipe.scheduler.config)
+
+# speed up diffusion process with faster scheduler and memory optimization
+# remove following line if xformers is not installed
+# pipe.enable_xformers_memory_efficient_attention()
+pipe.to('cuda')
 
 
 def scratch_remove_api(_: gr.Blocks, app: FastAPI):
@@ -38,29 +53,25 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             "model_download_time": server_process_time
         }
 
-    @app.post('/sdapi/ai/v1/scratchRemove/generateMask')
+    @app.post('/sdapi/ai/v1/scratch_remove')
     async def generate_mask_image(
             source_image: UploadFile = File()
     ):
+        utc_time = datetime.now(timezone.utc)
         start_time = time.time()
 
         downloadScratchRemoverModelModel()
-        image_base64_str = generate_scratch_mask(source_image)
+        image_base64_str = remove_scratch_using_mask(source_image)
 
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
-            "mask_image": image_base64_str,
-            "server_process_time": server_process_time
+            "server_hit_time": str(utc_time),
+            "server_process_time": server_process_time,
+            "output_image": image_base64_str
         }
 
-    @app.post('/arifTest')
-    async def arifTest():
-        return {
-            "server_process_time": " "
-        }
-
-    def generate_scratch_mask(source_image: UploadFile):
+    def remove_scratch_using_mask(source_image: UploadFile):
         curDir = os.getcwd()
         # input_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/Arif/"
 
@@ -104,8 +115,39 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         mask_image_np_dilated = cv2.dilate(mask_image_np, kernel, iterations=2)
         mask_image_dilated = Image.fromarray(mask_image_np_dilated)
 
+
+        ##scratck removing
+
+        main_image_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/" + filename_without_extention + pngExt
+        main_image = Image.open(main_image_dir).convert("RGB")
+        main_image = resize_image(main_image, 768)
+
+        main_mask = mask_image_dilated
+        main_mask = resize_image(main_mask, 768)
+
+        image = np.array(main_image)
+        low_threshold = 100
+        high_threshold = 200
+        canny = cv2.Canny(image, low_threshold, high_threshold)
+        canny = canny[:, :, None]
+        canny = np.concatenate([canny, canny, canny], axis=2)
+        canny_image = Image.fromarray(canny)
+        generator = torch.manual_seed(0)
+
+        without_scratch_Image_output = pipe(
+            prompt="",
+            num_inference_steps=20,
+            generator=generator,
+            image=main_image,
+            control_image=canny_image,
+            controlnet_conditioning_scale=0,
+            mask_image=main_mask
+        ).images[0]
+
+
         #return base64 image
-        _, encoded_img = cv2.imencode('.jpg', mask_image_np_dilated)
+        opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
+        _, encoded_img = cv2.imencode('.jpg', opencvImage)
         img_str = base64.b64encode(encoded_img).decode("utf-8")
         return img_str
 

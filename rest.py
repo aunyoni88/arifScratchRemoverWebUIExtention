@@ -81,6 +81,8 @@ with gr.Blocks() as demo:
         submit = gr.Button("Inpaint")
     
     def inpaint(input_dict, mask):
+        #Image.open(scratch_file).convert("RGB")
+
         image = input_dict["image"].convert("RGB")
         draw_mask = input_dict["mask"].convert("RGB")
 
