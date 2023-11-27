@@ -4,4 +4,6 @@ pip install diffusers==0.14.0 xformers transformers scipy ftfy accelerate contro
 pip install -q opencv-contrib-python
 wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt
 
+
+
 apt-get update && apt-get install libgl1
